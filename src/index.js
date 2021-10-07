@@ -5,7 +5,8 @@ const app = () => {
   const file = appFunctions.openFile("test1.txt")
   const data = appFunctions.getInitialData(file)
   console.log(data)
-  appFunctions.getTransitionTable(file, data)
+  const transitionTable = appFunctions.getTransitionTable(data)
+  console.log(transitionTable)
 }
 
 

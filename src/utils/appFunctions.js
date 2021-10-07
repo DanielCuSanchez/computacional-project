@@ -24,16 +24,30 @@ exports.appFunctions = {
       transitions
     }
   },
-  getTransitionTable: (file = '', data = {}) => {
-    let transitionTable = {}
+  getTransitionTable: (data = {}) => {
     const { states, transitions } = data
-    const table = transitions.map(t => formatTransition(t))
-    table.forEach(t => {
-      t.splice(1, 0, [...t[1].split('=>')][0])
-      t[2] = [...t[2].split('=>')][1]
-
+    const table = transitions.map(transition => formatTransition(transition))
+    table.forEach(transition => {
+      transition.splice(1, 0, [...transition[1].split('=>')][0])
+      transition[2] = [...transition[2].split('=>')][1]
     })
-    console.log(table)
+    const transitionTable = {}
+    // Inicializamos la tabla con los estados
+    states.map(state => {
+      transitionTable[state] = {}
+    })
+    // Recorremos cada llave de la tabla
+    Object.keys(transitionTable).map(key => {
+      table.map((element, index) => {
+        if (key === element[0]) {
+          transitionTable[key][element[1]] = {}
+          if (transitionTable[key][element[1]]) {
+            transitionTable[key][element[1]] = table[index].slice(2, table[index].length)
+          }
+        }
+      })
+    })
+    return transitionTable
   }
 }
 const accessToFile = (file, line) => file[line].split(',')
