@@ -6,11 +6,11 @@ const app = () => {
   // console.log(data)
   // const transitionTable = appFunctions.getTransitionTable(data)
   // console.log(transitionTable)
-  const result = appFunctions.getExtendedTransitionFunction(data, 'q0', 'adb')
+  const result = appFunctions.getExtendedTransitionFunction(data, 'q0', 'aab')
   if (result[0] === undefined) {
     console.log('La cadena no es parte del automata')
   } else {
-    console.log(result)
+    // console.log(result)
   }
 }
 

@@ -55,6 +55,7 @@ exports.appFunctions = {
   },
   getExtendedTransitionFunction: (data, state, chain) => {
     if (chain.length === 0) {
+      console.log('entre')
       return [state]
     } else if (chain.length === 1) {
       return this.appFunctions.getTransitionFunction(data, state, chain)
@@ -62,11 +63,18 @@ exports.appFunctions = {
       const u = chain[0]
       const a = chain[chain.length - 1]
       const aux = this.appFunctions.getExtendedTransitionFunction(data, state, u) // llamada recursiva
-      const union = aux.map(state => {
-        const aux2 = this.appFunctions.getTransitionFunction(data, state, a)
-        return aux2
+      const aux2 = aux.map(state => {
+        const temp = this.appFunctions.getTransitionFunction(data, state, a)
+
+        return temp === undefined ? 'no tiene 😀' : temp
       })
-      return union
+      console.log(chain)
+      const union = {}
+      union[u] = aux
+      union[a] = aux2
+      console.log(union)
+      const temp = [...aux, ...aux2]
+      return temp
     }
   }
 }
