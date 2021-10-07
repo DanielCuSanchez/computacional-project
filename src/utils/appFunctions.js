@@ -11,7 +11,6 @@ exports.appFunctions = {
   },
   //Toma los datos iniciales
   getInitialData: (file) => {
-
     const states = accessToFile(file, 0)
     const keys = accessToFile(file, 1)
     const initialState = accessToFile(file, 2)
@@ -29,16 +28,12 @@ exports.appFunctions = {
     let transitionTable = {}
     const { states, transitions } = data
     const table = transitions.map(t => formatTransition(t))
-    //console.log(table)
-    for (const transition of table) {
-      states.forEach(state => {
-        if (transition[0] === state) {
-          transitionTable[transition[0]] = transition.slice(1, transition.length)
-        }
-      })
-    }
-    console.log("😀", transitionTable)
+    table.forEach(t => {
+      t.splice(1, 0, [...t[1].split('=>')][0])
+      t[2] = [...t[2].split('=>')][1]
 
+    })
+    console.log(table)
   }
 }
 const accessToFile = (file, line) => file[line].split(',')
