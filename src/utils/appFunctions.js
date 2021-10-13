@@ -5,7 +5,7 @@ const path = require('path')
 exports.appFunctions = {
   // Abre el archivo
   openFile: (file) => {
-    const fileOpened = fs.readFileSync(path.join(__dirname, `../test/${file}`), { encoding: 'utf-8' })
+    const fileOpened = fs.readFileSync(path.join(__dirname, `../inputFiles/${file}`), { encoding: 'utf-8' })
     const fileFormated = fileOpened.split('\r').map(line => line.replace('\n', ''))
     return fileFormated
   },
@@ -50,31 +50,30 @@ exports.appFunctions = {
     return transitionTable
   },
   getTransitionFunction: (data, state, char) => {
+    console.log(char, 'CHAR')
     const transitionTable = this.appFunctions.getTransitionTable(data)
+    console.log(transitionTable[state][char])
     return transitionTable[state][char]
   },
-  getExtendedTransitionFunction: (data, state, chain) => {
+  getExtendedTransitionFunction: (data, state, chain) => { // aa
     if (chain.length === 0) {
-      console.log('entre')
-      return [state]
+      return state
     } else if (chain.length === 1) {
       return this.appFunctions.getTransitionFunction(data, state, chain)
     } else {
-      const u = chain[0]
-      const a = chain[chain.length - 1]
-      const aux = this.appFunctions.getExtendedTransitionFunction(data, state, u) // llamada recursiva
-      const aux2 = aux.map(state => {
-        const temp = this.appFunctions.getTransitionFunction(data, state, a)
-
+      const finalCharacter = chain[chain.length - 1]// caracter //b
+      const firstPartChain = chain.slice(0, chain.length - 1) // cadena //aa
+      const firtChain = this.appFunctions.getExtendedTransitionFunction(data, state, firstPartChain) // llamada recursiva
+      console.log('FIRST CHAIN', firtChain)
+      const aux2 = firtChain.map(character => {
+        console.log('CHARACTER IN FIRST CHAIN', character)
+        const temp = this.appFunctions.getTransitionFunction(data, character, finalCharacter)// b
         return temp === undefined ? 'no tiene 😀' : temp
       })
-      console.log(chain)
-      const union = {}
-      union[u] = aux
-      union[a] = aux2
-      console.log(union)
-      const temp = [...aux, ...aux2]
-      return temp
+      const result1 = [[...firtChain], ...aux2]
+      console.log('RESULT_1', result1)
+
+      return firtChain
     }
   }
 }
