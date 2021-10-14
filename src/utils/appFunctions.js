@@ -1,18 +1,24 @@
 /* eslint-disable prefer-const */
 /* eslint-disable array-callback-return */
+require('colors')
 const fs = require('fs')
 const path = require('path')
-const colors = require('colors')
 
 exports.appFunctions = {
-  // Abre el archivo
+  // This function opens the selected file
   openFile: (file) => {
     const fileOpened = fs.readFileSync(path.join(__dirname, `../inputFiles/${file}`), { encoding: 'utf-8' })
     const fileFormated = fileOpened.split('\r').map(line => line.replace('\n', ''))
     return fileFormated
   },
-  // Toma los datos iniciales
-  getInitialData: (file) => {
+
+  /**
+    * @method
+    * @desc This function generates initial automota from the file
+    * @version 1.0.0
+    * @param {text} file file already opened
+  */
+  getInitialAutomata: (file) => {
     const states = accessToFile(file, 0)
     const keys = accessToFile(file, 1)
     const initialState = accessToFile(file, 2)
@@ -26,8 +32,14 @@ exports.appFunctions = {
       transitions
     }
   },
-  getTransitionTable: (data = {}) => {
-    const { states, transitions } = data
+  /**
+    * @method
+    * @desc This function generates the transition table
+    * @version 1.0.0
+    * @param {object} automata initial automata
+  */
+  getTransitionTable: (automata = {}) => {
+    const { states, transitions } = automata
     const table = transitions.map(transition => formatTransition(transition))
     table.forEach(transition => {
       transition.splice(1, 0, [...transition[1].split('=>')][0])
@@ -51,8 +63,9 @@ exports.appFunctions = {
     })
     return transitionTable
   },
-  getTransitionFunction: (data, state, char) => {
-    const transitionTable = this.appFunctions.getTransitionTable(data)
+  // This function returns the states from each character that we want to validate
+  getTransitionFunction: (automata, state, char) => {
+    const transitionTable = this.appFunctions.getTransitionTable(automata)
     if (!transitionTable[state]) {
       return null
     } else if (!transitionTable[state][char]) {
@@ -61,42 +74,45 @@ exports.appFunctions = {
       return transitionTable[state][char]
     }
   },
-  getExtendedTransitionFunction: (data, initialState, chain) => {
-    if (chain.length === 0) {
-      return initialState
-    } else if (chain.length === 1) {
-      const table = this.appFunctions.getTransitionFunction(data, initialState, chain)
-      console.log('CHARACTER TO REVIEW'.red, chain)
-      console.log('TRANSITION = '.green, table)
-      return table
+  // This function is recursive. Gets states and for each state compares in transition table
+  getExtendedTransitionFunction: (automata, state, string) => {
+    if (string.length === 0) {
+      return state
+    } else if (string.length === 1) {
+      const transition = this.appFunctions.getTransitionFunction(automata, state, string)
+      console.log('CHARACTER TO REVIEW'.red, string)
+      console.log('STATE = ', state, 'string = ', string)
+      console.log('TRANSITION = '.cyan, transition)
+      return transition
     } else {
-      const restChain = chain.slice(0, chain.length - 1)
-      const arrStates = this.appFunctions.getExtendedTransitionFunction(data, initialState, restChain)
+      const restString = string.slice(0, string.length - 1)
+      const arrStates = this.appFunctions.getExtendedTransitionFunction(automata, state, restString)
       if (!arrStates) return []
 
-      let finalStates = []
-
-      const firtChar = chain[chain.length - 1]
+      let acumStates = []
+      const firtChar = string[string.length - 1]
       console.log('---------------------------')
       console.log('CHARACTER TO REVIEW'.red, firtChar)
       console.log('STATES_CHARACTER'.magenta, arrStates)
       console.log('---------------------------')
+      // Loops each state into arrStates that is for each "char"
       for (let i = 0; i < arrStates.length; i++) {
         const stateArr = arrStates[i]
-        const transition = this.appFunctions.getTransitionFunction(data, stateArr, firtChar)
+        const transition = this.appFunctions.getTransitionFunction(automata, stateArr, firtChar)
         console.log('STATE = ', stateArr, 'CHAIN = ', firtChar)
         console.log('TRANSITION = '.cyan, (transition === null ? 'NOT TRANSITION' : transition))
         if (transition !== null) {
-          finalStates = [...finalStates, ...transition]
+          acumStates = union(acumStates, transition)// invokes the union function
         }
       }
-      console.log('RESULT_STATES'.blue, finalStates.filter((v, i) => finalStates.indexOf(v) === i))
-      return finalStates.filter((v, i) => finalStates.indexOf(v) === i)
+      console.log('RESULT_STATES'.blue, acumStates.filter((v, i) => acumStates.indexOf(v) === i))
+      return acumStates.filter((v, i) => acumStates.indexOf(v) === i) // Returns array union
     }
   },
-  validateChain: (data, result) => {
+  // This function compare the final state in the chain with the final states in the file
+  validateString: (automata, result) => {
     let isValidate = false
-    const { finalStates } = data
+    const { finalStates } = automata
     for (const state of result) {
       for (const final of finalStates) {
         if (state === final) {
@@ -104,14 +120,15 @@ exports.appFunctions = {
         }
       }
     }
+    // This is the conclusion
     if (isValidate) {
-      console.log('CONCLUSION ='.bgWhite.black, 'CHAIN IS ACCEPTED'.blue.bgWhite)
+      console.log('CONCLUSION ='.bgWhite.black, 'STRING IS ACCEPTED'.blue.bgWhite)
     } else {
-      console.log('CONCLUSION ='.bgWhite.black, 'CHAIN IS NOT ACCEPTED'.red.bgWhite)
+      console.log('CONCLUSION ='.bgWhite.black, 'STRING IS NOT ACCEPTED'.red.bgWhite)
     }
   }
 }
-
+// This function is used to do the autocomplete function in terminal
 exports.complete = (commands) => {
   return function (str) {
     let i
@@ -123,10 +140,18 @@ exports.complete = (commands) => {
   }
 }
 
-// Funciones auxiliares
+// Auxiliar functions
+
+const union = (acumTransitions, transition) => {
+  return [...acumTransitions, ...transition]
+}
+
+// This function separate lines
 const accessToFile = (file, line) => file[line].split(',')
+// This function gets the automata from the file
 const cutFile = (file, start) => file.splice(start, file.length)
+// This function gets the transitions automata
 const formatTransition = (transition) => {
-  const tf = transition.split(',')
-  return tf
+  const transitionFormated = transition.split(',')
+  return transitionFormated
 }
