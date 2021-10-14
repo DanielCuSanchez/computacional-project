@@ -1,3 +1,4 @@
+/* eslint-disable indent */
 module.exports = {
     env: {
         commonjs: true,
@@ -11,5 +12,6 @@ module.exports = {
         ecmaVersion: 12
     },
     rules: {
+        'space-before-function-paren': ['error', 'none']
     }
 }

@@ -4,7 +4,7 @@
   * @since   2021 - 10 - 14
  */
 
-const { appFunctions, complete } = require('./utils/appFunctions')
+const { app, complete } = require('./app')
 const prompt = require('prompt-sync')({ sigint: true })
 
 const main = () => {
@@ -13,15 +13,9 @@ const main = () => {
   console.log('---------------------')
 
   const nameFile = prompt('Put name of the file (USE TABULATOR) = '.yellow, { autocomplete: complete(['test1.txt', 'test2.txt']) })
-  const chain = prompt('Insert the string (USE TABULATOR) = '.magenta, { autocomplete: complete(['a', 'ab', 'aba', 'aab']) })
+  const string = prompt('Insert the string (USE TABULATOR) = '.magenta, { autocomplete: complete(['a', 'ab', 'aba', 'aab']) })
 
-  console.log('.............RESULTS..............')
-
-  const file = appFunctions.openFile(nameFile)
-  const automata = appFunctions.getInitialAutomata(file)
-  console.log('AUTOMATA'.rainbow, automata)
-  const statesResults = appFunctions.getExtendedTransitionFunction(automata, 'q0', chain)
-  appFunctions.validateString(automata, statesResults)
+  app(nameFile, string)
 }
 
 main()
