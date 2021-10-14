@@ -1,6 +1,8 @@
+/* eslint-disable prefer-const */
 /* eslint-disable array-callback-return */
 const fs = require('fs')
 const path = require('path')
+const colors = require('colors')
 
 exports.appFunctions = {
   // Abre el archivo
@@ -14,13 +16,13 @@ exports.appFunctions = {
     const states = accessToFile(file, 0)
     const keys = accessToFile(file, 1)
     const initialState = accessToFile(file, 2)
-    const finalState = accessToFile(file, 3)
+    const finalStates = accessToFile(file, 3)
     const transitions = cutFile([...file], 4)
     return {
       states,
       keys,
       initialState,
-      finalState,
+      finalStates,
       transitions
     }
   },
@@ -50,33 +52,77 @@ exports.appFunctions = {
     return transitionTable
   },
   getTransitionFunction: (data, state, char) => {
-    console.log(char, 'CHAR')
     const transitionTable = this.appFunctions.getTransitionTable(data)
-    console.log(transitionTable[state][char])
-    return transitionTable[state][char]
-  },
-  getExtendedTransitionFunction: (data, state, chain) => { // aa
-    if (chain.length === 0) {
-      return state
-    } else if (chain.length === 1) {
-      return this.appFunctions.getTransitionFunction(data, state, chain)
+    if (!transitionTable[state]) {
+      return null
+    } else if (!transitionTable[state][char]) {
+      return null
     } else {
-      const finalCharacter = chain[chain.length - 1]// caracter //b
-      const firstPartChain = chain.slice(0, chain.length - 1) // cadena //aa
-      const firtChain = this.appFunctions.getExtendedTransitionFunction(data, state, firstPartChain) // llamada recursiva
-      console.log('FIRST CHAIN', firtChain)
-      const aux2 = firtChain.map(character => {
-        console.log('CHARACTER IN FIRST CHAIN', character)
-        const temp = this.appFunctions.getTransitionFunction(data, character, finalCharacter)// b
-        return temp === undefined ? 'no tiene 😀' : temp
-      })
-      const result1 = [[...firtChain], ...aux2]
-      console.log('RESULT_1', result1)
+      return transitionTable[state][char]
+    }
+  },
+  getExtendedTransitionFunction: (data, initialState, chain) => {
+    if (chain.length === 0) {
+      return initialState
+    } else if (chain.length === 1) {
+      const table = this.appFunctions.getTransitionFunction(data, initialState, chain)
+      console.log('CHARACTER TO REVIEW'.red, chain)
+      console.log('TRANSITION = '.green, table)
+      return table
+    } else {
+      const restChain = chain.slice(0, chain.length - 1)
+      const arrStates = this.appFunctions.getExtendedTransitionFunction(data, initialState, restChain)
+      if (!arrStates) return []
 
-      return firtChain
+      let finalStates = []
+
+      const firtChar = chain[chain.length - 1]
+      console.log('---------------------------')
+      console.log('CHARACTER TO REVIEW'.red, firtChar)
+      console.log('STATES_CHARACTER'.magenta, arrStates)
+      console.log('---------------------------')
+      for (let i = 0; i < arrStates.length; i++) {
+        const stateArr = arrStates[i]
+        const transition = this.appFunctions.getTransitionFunction(data, stateArr, firtChar)
+        console.log('STATE = ', stateArr, 'CHAIN = ', firtChar)
+        console.log('TRANSITION = '.cyan, (transition === null ? 'NOT TRANSITION' : transition))
+        if (transition !== null) {
+          finalStates = [...finalStates, ...transition]
+        }
+      }
+      console.log('RESULT_STATES'.blue, finalStates.filter((v, i) => finalStates.indexOf(v) === i))
+      return finalStates.filter((v, i) => finalStates.indexOf(v) === i)
+    }
+  },
+  validateChain: (data, result) => {
+    let isValidate = false
+    const { finalStates } = data
+    for (const state of result) {
+      for (const final of finalStates) {
+        if (state === final) {
+          isValidate = true
+        }
+      }
+    }
+    if (isValidate) {
+      console.log('CONCLUSION ='.bgWhite.black, 'CHAIN IS ACCEPTED'.blue.bgWhite)
+    } else {
+      console.log('CONCLUSION ='.bgWhite.black, 'CHAIN IS NOT ACCEPTED'.red.bgWhite)
     }
   }
 }
+
+exports.complete = (commands) => {
+  return function (str) {
+    let i
+    const ret = []
+    for (i = 0; i < commands.length; i++) {
+      if (commands[i].indexOf(str) === 0) { ret.push(commands[i]) }
+    }
+    return ret
+  }
+}
+
 // Funciones auxiliares
 const accessToFile = (file, line) => file[line].split(',')
 const cutFile = (file, start) => file.splice(start, file.length)
