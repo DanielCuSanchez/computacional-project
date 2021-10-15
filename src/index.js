@@ -15,7 +15,7 @@ const main = () => {
   const nameFile = prompt('Put name of the file (USE TABULATOR) = '.yellow, { autocomplete: complete(['test1.txt', 'test2.txt']) })
   const string = prompt('Insert the string (USE TABULATOR) = '.magenta, { autocomplete: complete(['a', 'ab', 'aba', 'aab']) })
 
-  app(nameFile, string)
+  app(nameFile, string)//This function starts the program
 }
 
 main()
