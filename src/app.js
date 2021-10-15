@@ -17,7 +17,7 @@ exports.app = (nameFile, string) => {
 
   /**
    * Since here starts the methods
-   */
+  */
 
 
 
@@ -26,7 +26,7 @@ exports.app = (nameFile, string) => {
    * @desc This function generates initial automota from the file
    * @version 1.0.0
    * @param {text} file file already opened
-   */
+  */
   function openFile(file) {
     const fileOpened = fs.readFileSync(path.join(__dirname, `/files/${file}`), { encoding: 'utf-8' })
     const fileFormated = fileOpened.split('\r').map(line => line.replace('\n', ''))
