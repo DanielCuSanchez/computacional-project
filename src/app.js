@@ -2,7 +2,13 @@ require('colors')
 const fs = require('fs')
 const path = require('path')
 
+/**
+    * @function
+    * @desc This is the init app function
+    * @version 1.0.0
+*/
 exports.app = (nameFile, string) => {
+  //With this works the app
   const file = openFile(nameFile)
   const automata = getInitialAutomata(file)
   console.log('AUTOMATA'.rainbow, automata)
@@ -10,7 +16,13 @@ exports.app = (nameFile, string) => {
   validateString(statesResults)
 
   /**
-   * @method
+   * Since here starts the methods
+   */
+
+
+
+  /**
+   * @method openFile
    * @desc This function generates initial automota from the file
    * @version 1.0.0
    * @param {text} file file already opened
@@ -21,13 +33,14 @@ exports.app = (nameFile, string) => {
     return fileFormated
   }
 
-  /**
-  * @method
-  * @desc This function generates the transition table
-  * @version 1.0.0
-  * @param {object} automata initial automata
-  */
 
+  /**
+  * @method getInitialAutomata
+  * @desc This function generates the initial automata
+  * @version 1.0.0
+  * @param {object} file a txt file already opened
+  * @returns {object} initial automata
+  */
   function getInitialAutomata(file) {
     const states = accessToFile(file, 0)
     const alphabet = accessToFile(file, 1)
@@ -43,6 +56,13 @@ exports.app = (nameFile, string) => {
     }
   }
 
+
+  /**
+    * @method getTransitionTable
+    * @desc This function generates the transition table
+    * @version 1.0.0
+    *@returns {object} transition table
+  */
   function getTransitionTable() {
     const { states, transitions } = automata
     const table = transitions.map(transition => formatTransition(transition))
@@ -51,11 +71,9 @@ exports.app = (nameFile, string) => {
       transition[2] = [...transition[2].split('=>')][1]
     })
     const transitionTable = {}
-    // Inicializamos la tabla con los estados
     states.map(state => {
       transitionTable[state] = {}
     })
-    // Recorremos cada llave de la tabla
     Object.keys(transitionTable).map(key => {
       table.map((element, index) => {
         if (key === element[0]) {
@@ -69,6 +87,15 @@ exports.app = (nameFile, string) => {
     return transitionTable
   }
 
+
+  /**
+    * @method getTransitionFunction
+    * @desc This function returns the states from each character that we wan to validate
+    * @version 1.0.0
+    * @param {string} state current state to find in transition table
+    * @param {string} string current string to find in transition table
+    *@returns {Array} current transition
+  */
   function getTransitionFunction(state, char) {
     const transitionTable = getTransitionTable(automata)
     if (!transitionTable[state]) {
@@ -80,6 +107,17 @@ exports.app = (nameFile, string) => {
     }
   }
 
+
+  /**
+    * @method getExtendedTransitionFunction
+    * @desc This function returns the states from each character that we want to process
+    * @version 1.0.0
+    * @param {string} state current state to process
+    * @param {string} string current string to process
+    *@returns {Array} acumStates are the states that arrives after the process string
+    *@returns {Array} transition is the simple array with the states from the string
+    *@returns {Array} state when is not string to process
+  */
   function getExtendedTransitionFunction(state, string) {
     if (string.length === 0) {
       return state
@@ -107,13 +145,21 @@ exports.app = (nameFile, string) => {
         console.log('STATE = ', stateArr, 'CHAIN = ', firtChar)
         console.log('TRANSITION = '.cyan, (transition === null ? 'NOT TRANSITION' : transition))
         if (transition !== null) {
-          acumStates = union(acumStates, transition)// invokes the union function
+          acumStates = union(acumStates, transition)// Here is the union function
         }
       }
       console.log('RESULT_STATES'.blue, acumStates.filter((v, i) => acumStates.indexOf(v) === i))
       return acumStates.filter((v, i) => acumStates.indexOf(v) === i) // Returns array union
     }
   }
+
+
+  /**
+    * @method validateString
+    * @desc This function compare the final state from the automata with the final states after the running process
+    * @version 1.0.0
+    * @param {Array} result the result state as final state after the execution process
+  */
   function validateString(result) {
     let isValidate = false
     const { finalStates } = automata
@@ -124,7 +170,6 @@ exports.app = (nameFile, string) => {
         }
       }
     }
-    // This is the conclusion
     if (isValidate) {
       console.log('CONCLUSION ='.bgWhite.black, 'STRING IS ACCEPTED'.blue.bgWhite)
     } else {
@@ -132,27 +177,66 @@ exports.app = (nameFile, string) => {
     }
   }
 
-  // Auxiliar functions
+
+  /**
+    * @method union
+    * @desc This function is the unión of the states
+    * @version 1.0.0
+    * @param {Array} acumTransitions  the unión of the transitions states
+    * @param {Array} transition result of transition function
+    *@returns {Array} acumTransitions  the unión of the transitions states
+    *@returns {Array} transition result of transition function
+  */
   function union(acumTransitions, transition) {
     return [...acumTransitions, ...transition]
   }
 
-  // This function separate lines
+
+  /**
+    * @method accessToFile
+    * @desc This function separate lines
+    * @version 1.0.0
+    * @param {Object} File  File to read
+    * @param {Integer} line line of the file
+  */
   function accessToFile(file, line) {
     return file[line].split(',')
   }
-  // This function gets the automata from the file
+
+
+  /**
+    * @method cutFile
+    * @desc  This function gets the automata from the file
+    * @version 1.0.0
+    * @param {Object} File  File to read
+    * @param {Integer} start start of the file
+  */
   function cutFile(file, start) {
     return file.splice(start, file.length)
   }
-  // This function gets the transitions automata
+
+
+
+  /**
+   * @method formatTransition
+   * @desc This function formats the transitions automata
+   * @version 1.0.0
+   * @param {Array} transition result of transition formatted
+   *@returns {Array} transitionFormates  the transition with format
+  */
   function formatTransition(transition) {
     const transitionFormated = transition.split(',')
     return transitionFormated
   }
 }
 
-// This function is used to do the autocomplete function in terminal
+/**
+  * @method complete
+  * @desc This function is used to acomplete line terminal
+  * @version 1.0.0
+  * @param {Array} commands default values to enter in terminal
+  *@returns {Array} ret chosen values
+*/
 exports.complete = (commands) => {
   return function (str) {
     let i
